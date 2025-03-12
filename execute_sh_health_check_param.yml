@@ -6,6 +6,12 @@
     log_file: "/var/log/health_check_{{ survey_id }}.log"  # Survey에서 입력받은 값 사용
 
   tasks:
+    - name: Ensure /home/ansible/playbook directory exists
+      ansible.builtin.file:
+        path: /home/ansible/playbook
+        state: directory
+        mode: '0755'
+
     - name: Copy health_check.sh to remote server
       ansible.builtin.copy:
         src: health_check.sh
