@@ -1,0 +1,7 @@
+---
+- name: Run System Health Check Script
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Execute health_check.sh script
+      ansible.builtin.shell: "/home/ansible/playbook/health_check.sh"
