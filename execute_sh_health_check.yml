@@ -3,5 +3,23 @@
   hosts: all
   gather_facts: no
   tasks:
+    - name: Ensure /home/ansible/playbook directory exists
+      ansible.builtin.file:
+        path: /home/ansible/playbook
+        state: directory
+        mode: '0755'
+
+    - name: Copy health_check.sh to remote server
+      ansible.builtin.copy:
+        src: health_check.sh
+        dest: /home/ansible/playbook/health_check.sh
+        mode: '0755'
+
     - name: Execute health_check.sh script
-      ansible.builtin.shell: "/home/ansible/playbook/health_check.sh"
+      ansible.builtin.shell: "/bin/bash /home/ansible/playbook/health_check.sh"
+      register: script_output
+
+    - name: Print script output
+      debug:
+        msg: "{{ script_output.stdout_lines }}"
+
