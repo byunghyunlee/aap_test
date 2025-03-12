@@ -3,7 +3,7 @@
   hosts: all
   gather_facts: no
   vars:
-    log_file: "/var/log/health_check_{{ survey_id }}.log"  # Survey에서 입력받은 값 사용
+    log_file: "/home/ansible/health_check_{{ survey_id }}.log"  # Survey에서 입력받은 값 사용
 
   tasks:
     - name: Ensure /home/ansible/playbook directory exists
