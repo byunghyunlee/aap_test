@@ -1,0 +1,28 @@
+---
+- name: Run System Health Check Script
+  hosts: all
+  gather_facts: no
+  vars:
+    log_file: "/var/log/health_check_{{ survey_id }}.log"  # Survey에서 입력받은 값 사용
+
+  tasks:
+    - name: Copy health_check.sh to remote server
+      ansible.builtin.copy:
+        src: health_check.sh
+        dest: /home/ansible/playbook/health_check.sh
+        mode: '0755'
+
+    - name: Execute health_check.sh script
+      ansible.builtin.shell: "/home/ansible/playbook/health_check.sh"
+      register: script_output
+
+    - name: Save output to log file
+      ansible.builtin.copy:
+        content: "{{ script_output.stdout }}"
+        dest: "{{ log_file }}"
+        mode: '0644'
+
+    - name: Print script output
+      debug:
+        msg: "{{ script_output.stdout_lines }}"
+
