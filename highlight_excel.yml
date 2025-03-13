@@ -1,0 +1,27 @@
+- name: Highlight "HR" in department column
+  hosts: all
+  gather_facts: no
+  tasks:
+
+    - name: Generate today's date as a variable
+      ansible.builtin.set_fact:
+        today_date: "{{ lookup('pipe', 'date +%Y-%m-%d') }}"
+
+    - name: Define Excel file path
+      ansible.builtin.set_fact:
+        excel_filename: "/tmp/scripts/{{ today_date }}.xlsx"
+
+    - name: Copy Python script to managed node
+      ansible.builtin.copy:
+        src: "/home/ansible/playbook/library/highlight_excel.py"
+        dest: "/tmp/scripts/highlight_excel.py"
+        mode: "0755"
+
+    - name: Run Python script to highlight "HR" department
+      ansible.builtin.command: "python3 /tmp/scripts/highlight_excel.py {{ excel_filename }}"
+      register: highlight_result
+
+    - name: Print script execution result
+      ansible.builtin.debug:
+        msg: "{{ highlight_result.stdout }}"
+

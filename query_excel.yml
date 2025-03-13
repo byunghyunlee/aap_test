@@ -1,5 +1,5 @@
 - name: Copy and execute SQL script on managed node, then save to Excel
-  hosts: team3
+  hosts: all
   gather_facts: no
   tasks:
 
@@ -60,3 +60,7 @@
         headers_show: true
         create: true
 
+
+
+          #    - name: test
+          #      highlight_excel:
