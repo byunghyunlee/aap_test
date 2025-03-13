@@ -1,0 +1,62 @@
+- name: Copy and execute SQL script on managed node, then save to Excel
+  hosts: team3
+  gather_facts: no
+  tasks:
+
+    - name: Generate today's date as a variable
+      ansible.builtin.set_fact:
+        today_date: "{{ lookup('pipe', 'date +%Y-%m-%d') }}"
+
+    - name: Create script directory on managed node
+      ansible.builtin.file:
+        path: /tmp/scripts
+        state: directory
+        mode: '0755'
+
+    - name: Copy SQL execution script to managed node
+      ansible.builtin.copy:
+        src: /home/ansible/playbook/execute_sql.sh
+        dest: /tmp/scripts/execute_sql.sh
+        mode: '0755'
+
+    - name: Run SQL script on managed node
+      ansible.builtin.command: "/tmp/scripts/execute_sql.sh"
+      register: query_result
+
+    - name: Print raw query result
+      ansible.builtin.debug:
+        msg: "{{ query_result.stdout_lines }}"
+
+    - name: Clean query result - Remove separator lines and '(X rows)'
+      ansible.builtin.set_fact:
+        cleaned_data: "{{ query_result.stdout_lines | reject('search', '^-+.*-+$') | reject('search', '\\(.*rows?\\)') | list }}"
+
+    - name: Extract headers (column names) and clean spaces
+      ansible.builtin.set_fact:
+        headers: "{{ cleaned_data[0].split('|') | map('trim') | list }}"
+
+    - name: Convert query result to dictionary format
+      ansible.builtin.set_fact:
+        formatted_data: "{{ cleaned_data[1:] | map('split', '|') | map('map', 'trim') | map('list') | list }}"
+
+    - name: Convert list to dictionary format
+      ansible.builtin.set_fact:
+        final_data: "{{ final_data | default([]) + [{'id': row[0] | int, 'name': row[1], 'department': row[2], 'salary': row[3] | int}] }}"
+      loop: "{{ formatted_data }}"
+      loop_control:
+        loop_var: row
+
+    - name: Generate Excel filename
+      ansible.builtin.set_fact:
+        excel_filename: "/tmp/scripts/{{ today_date }}.xlsx"
+
+    - name: Save query result to Excel
+      cdelgehier.excel.excel:
+        operation: write
+        path: "/tmp/scripts"
+        file: "{{ today_date }}.xlsx"
+        worksheet: "SQL_Result"
+        data: "{{ final_data }}"
+        headers_show: true
+        create: true
+
